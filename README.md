@@ -26,12 +26,15 @@ Then open http://localhost:5174
 - **Day / night toggle**: at night the court is lit by four LED floodlights
   bracketed under the roof line (so it's lit open or closed), stars and a moon
   come out, the house interiors light up, and the pool glows.
-- **Estate surroundings**: the court sits in the grounds of a glass-fronted
-  modern mansion you can see into — furnished living, dining and kitchen
-  spaces, a master bedroom above, pool with loungers and a poolhouse bar,
-  garage wing with three cars on the motor court, driveway, hedgerows,
-  topiary, and bollard lighting. Surfaces use procedural textures
-  (`src/textures.js`): striped lawn, paving, timber, rippling water.
+- **Estate surroundings**: the court sits in the grounds of a 32 m wide
+  glass-fronted modern mansion you can see into — living lounge with
+  fireplace, 8-seat dining, kitchen, a double-height glass stair tower with
+  chandelier, a cantilevered master suite (bed, freestanding bath, shower,
+  dressing room), a rooftop terrace, and a front terrace with fire pit.
+  Plus pool with loungers and a poolhouse bar, a four-door garage wing with
+  four detailed cars (extruded body profiles, spoked wheels, lights, spoilers),
+  driveway, hedgerows, topiary, and bollard lighting. Surfaces use procedural
+  textures (`src/textures.js`): striped lawn, paving, timber, rippling water.
 - **Close / open the cover** (bottom): animated motor travel (~7 s), or scrub
   the slider to any position. The roller spins and the stored fabric bulk
   shrinks as the membrane pays out.
