@@ -84,7 +84,49 @@ export function woodTexture(hex, repeat = [1, 1]) {
   }, repeat);
 }
 
-// soft light blobs for pool water — scrolled each frame for a ripple feel
+// seamless tiling normal map of gentle overlapping waves, for the water surface
+export function waterNormalTexture(repeat = [4, 3]) {
+  const s = 256;
+  const waves = [];
+  for (let k = 0; k < 7; k++) {
+    waves.push({
+      fx: Math.round(1 + Math.random() * 3) * (Math.random() < 0.5 ? -1 : 1),
+      fy: Math.round(1 + Math.random() * 3) * (Math.random() < 0.5 ? -1 : 1),
+      ph: Math.random() * Math.PI * 2,
+      amp: 0.5 + Math.random() * 0.8,
+    });
+  }
+  const h = (x, y) => {
+    let v = 0;
+    for (const w of waves) v += w.amp * Math.sin(((w.fx * x + w.fy * y) / s) * Math.PI * 2 + w.ph);
+    return v;
+  };
+  const c = document.createElement('canvas');
+  c.width = c.height = s;
+  const g = c.getContext('2d');
+  const img = g.createImageData(s, s);
+  const strength = 6;
+  for (let y = 0; y < s; y++) {
+    for (let x = 0; x < s; x++) {
+      const dx = (h(x + 1, y) - h(x - 1, y)) * strength;
+      const dy = (h(x, y + 1) - h(x, y - 1)) * strength;
+      const len = Math.hypot(dx, dy, 1);
+      const i = (y * s + x) * 4;
+      img.data[i] = ((-dx / len) * 0.5 + 0.5) * 255;
+      img.data[i + 1] = ((-dy / len) * 0.5 + 0.5) * 255;
+      img.data[i + 2] = ((1 / len) * 0.5 + 0.5) * 255;
+      img.data[i + 3] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(repeat[0], repeat[1]);
+  tex.colorSpace = THREE.NoColorSpace;      // normal data, not colour
+  return tex;
+}
+
+// soft light blobs — used as moving caustics on the pool floor
 export function rippleTexture(repeat = [3, 2]) {
   return make(256, (g, s) => {
     g.fillStyle = '#2a9ad0';

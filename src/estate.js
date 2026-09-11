@@ -8,7 +8,11 @@
 // flicker, so floors always start 0.06 above the slab beneath them.
 
 import * as THREE from 'three';
-import { noiseTexture, paverTexture, woodTexture, rippleTexture } from './textures.js';
+import { noiseTexture, paverTexture, woodTexture, rippleTexture, waterNormalTexture } from './textures.js';
+
+// pool footprint — scene.js cuts a matching hole in the lawn so the basin
+// is genuinely recessed below ground
+export const POOL = { x: -9, z: -20.5, w: 10, d: 7, depth: 1.7 };
 
 export function buildEstate(scene) {
   const g = new THREE.Group();
@@ -58,11 +62,19 @@ export function buildEstate(scene) {
   const headlight = glowMat(0xe8ecef, 0xf4f8ff, 0, 3.0);
   const tailLight = glowMat(0x3a0808, 0xff2a2a, 0.25, 1.6, { roughness: 0.3 });
   const fireGlow = glowMat(0x2a1a10, 0xff7a2a, 0.35, 2.6);
-  const water = new THREE.MeshStandardMaterial({
-    map: rippleTexture(), color: 0xbfe6ff, roughness: 0.12, metalness: 0.1,
-    emissive: 0x1e9fd8, emissiveIntensity: 0.15,
+  // water surface: see-through, glossy, rippling normals reflecting the sky
+  const water = new THREE.MeshPhysicalMaterial({
+    color: 0x5cc4ec, transparent: true, opacity: 0.55, roughness: 0.03, metalness: 0,
+    clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 1.6,
+    normalMap: waterNormalTexture([3, 2]), normalScale: new THREE.Vector2(0.35, 0.35),
+    depthWrite: false,
   });
-  glows.push({ mat: water, day: 0.15, night: 1.1 });
+  // pale plaster basin with drifting caustic light patterns; glows at night
+  const basin = new THREE.MeshStandardMaterial({
+    map: rippleTexture([2.5, 1.8]), color: 0xd8f2f6, roughness: 0.8,
+    emissive: 0x1e9fd8, emissiveIntensity: 0,
+  });
+  glows.push({ mat: basin, day: 0, night: 0.9 });
 
   // real lights for the night: {light, night}
   const nightLights = [];
@@ -451,10 +463,33 @@ export function buildEstate(scene) {
   // ============================================================
   // POOL + DECK + POOLHOUSE
   // ============================================================
-  bx(18, 0.035, 12, deckStone, -9, 0.018, -20.5);
-  bx(10.8, 0.18, 7.8, quartz, -9, 0.1, -20.5);                 // coping
-  const pool = bx(10, 0.1, 7, water, -9, 0.13, -20.5, 0, false);
-  addLight(0x2bb7e8, -9, 1, -20.5, 40, 16);
+  // deck in four pieces around the hole (x -18..0, z -26.5..-14.5)
+  const { x: px, z: pz, w: pw, d: pd, depth: pdeep } = POOL;
+  const hx0 = px - pw / 2, hx1 = px + pw / 2, hz0 = pz - pd / 2, hz1 = pz + pd / 2;
+  bx(hx0 + 18, 0.035, 12, deckStone, (hx0 - 18) / 2, 0.018, pz);          // west
+  bx(-hx1, 0.035, 12, deckStone, hx1 / 2, 0.018, pz);                     // east
+  bx(pw, 0.035, hz0 + 26.5, deckStone, px, 0.018, (hz0 - 26.5) / 2);      // north
+  bx(pw, 0.035, -14.5 - hz1, deckStone, px, 0.018, (hz1 - 14.5) / 2);     // south
+  // coping frame, 0.4 wide, proud of the deck
+  bx(0.4, 0.18, pd + 0.8, quartz, hx0 - 0.2, 0.1, pz);
+  bx(0.4, 0.18, pd + 0.8, quartz, hx1 + 0.2, 0.1, pz);
+  bx(pw, 0.18, 0.4, quartz, px, 0.1, hz0 - 0.2);
+  bx(pw, 0.18, 0.4, quartz, px, 0.1, hz1 + 0.2);
+  // recessed basin: floor + four walls lining the hole in the lawn
+  bx(pw, 0.1, pd, basin, px, -pdeep + 0.05, pz, 0, false);
+  bx(pw, pdeep + 0.1, 0.1, basin, px, -pdeep / 2 + 0.05, hz0 + 0.05, 0, false);
+  bx(pw, pdeep + 0.1, 0.1, basin, px, -pdeep / 2 + 0.05, hz1 - 0.05, 0, false);
+  bx(0.1, pdeep + 0.1, pd, basin, hx0 + 0.05, -pdeep / 2 + 0.05, pz, 0, false);
+  bx(0.1, pdeep + 0.1, pd, basin, hx1 - 0.05, -pdeep / 2 + 0.05, pz, 0, false);
+  // water surface just below the coping
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(pw - 0.02, pd - 0.02, 1, 1), water);
+  pool.rotation.x = -Math.PI / 2;
+  pool.position.set(px, -0.14, pz);
+  pool.receiveShadow = true;
+  g.add(pool);
+  // pool steps in one corner
+  for (let i = 0; i < 3; i++) bx(1.6, 0.1, 0.45 + i * 0.45, basin, hx1 - 0.85, -0.3 - i * 0.45, hz1 - 0.3 - (0.45 + i * 0.45) / 2, 0, false);
+  addLight(0x2bb7e8, px, -0.9, pz, 40, 16);                     // underwater light
   for (const lx of [-12.5, -10.5, -8.5]) lounger(lx, -15.6);
   bx(0.5, 0.45, 0.5, wood, -7.4, 0.24, -15.6);
   cyl(0.035, 0.035, 2.3, darkTrim, -6.3, 1.15, -15.4, 8);
@@ -524,8 +559,11 @@ export function buildEstate(scene) {
   setNight(0);
 
   function update(dt) {
-    pool.material.map.offset.x += dt * 0.02;
-    pool.material.map.offset.y += dt * 0.013;
+    // surface ripples drift one way, floor caustics the other
+    water.normalMap.offset.x += dt * 0.025;
+    water.normalMap.offset.y += dt * 0.017;
+    basin.map.offset.x -= dt * 0.015;
+    basin.map.offset.y += dt * 0.01;
   }
 
   return { setNight, update };

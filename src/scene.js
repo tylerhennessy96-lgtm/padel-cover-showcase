@@ -2,6 +2,7 @@
 
 import * as THREE from 'three';
 import { grassTexture } from './textures.js';
+import { POOL } from './estate.js';
 
 export function buildEnvironment(scene) {
   scene.background = new THREE.Color(0x9ec9e8);
@@ -64,10 +65,22 @@ export function buildEnvironment(scene) {
   sun.shadow.normalBias = 0.03;
   scene.add(sun);
 
-  // lawn with mowing stripes
+  // lawn with mowing stripes, with a hole cut for the pool basin.
+  // ShapeGeometry UVs are world units, so the texture repeat is per metre.
+  const lawnShape = new THREE.Shape();
+  lawnShape.absarc(0, 0, 220, 0, Math.PI * 2, false);
+  const poolHole = new THREE.Path();                 // shape y maps to world -z
+  const hx0 = POOL.x - POOL.w / 2, hx1 = POOL.x + POOL.w / 2;
+  const hy0 = -(POOL.z + POOL.d / 2), hy1 = -(POOL.z - POOL.d / 2);
+  poolHole.moveTo(hx0, hy0);
+  poolHole.lineTo(hx1, hy0);
+  poolHole.lineTo(hx1, hy1);
+  poolHole.lineTo(hx0, hy1);
+  poolHole.closePath();
+  lawnShape.holes.push(poolHole);
   const ground = new THREE.Mesh(
-    new THREE.CircleGeometry(220, 48),
-    new THREE.MeshStandardMaterial({ map: grassTexture([90, 90]), roughness: 1 })
+    new THREE.ShapeGeometry(lawnShape, 48),
+    new THREE.MeshStandardMaterial({ map: grassTexture([0.2, 0.2]), roughness: 1 })
   );
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -0.02;
