@@ -411,8 +411,9 @@ function tick() {
     cover.setNightLights(nightNow);
   }
 
-  // weather
+  // weather + scenery animation
   env.update(dt);
+  estate.update(dt);
   rain.update(dt);
   windKmh += (8 - windKmh) * Math.min(1, dt * 0.25);   // gusts decay back to a breeze
   cover.tickWeather(dt, windKmh);

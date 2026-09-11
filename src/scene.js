@@ -1,6 +1,7 @@
 // Environment: sky, sun, ground, and a bit of surrounding context.
 
 import * as THREE from 'three';
+import { grassTexture } from './textures.js';
 
 export function buildEnvironment(scene) {
   scene.background = new THREE.Color(0x9ec9e8);
@@ -14,6 +15,9 @@ export function buildEnvironment(scene) {
     uniforms: {
       top: { value: new THREE.Color(0x3f7fc4) },
       horizon: { value: new THREE.Color(0xc4dcec) },
+      sunDir: { value: new THREE.Vector3(35, 48, 20).normalize() },
+      moonDir: { value: new THREE.Vector3(-30, 32, -46).normalize() },
+      night: { value: 0 },
     },
     vertexShader: `
       varying vec3 vDir;
@@ -24,10 +28,20 @@ export function buildEnvironment(scene) {
     fragmentShader: `
       uniform vec3 top;
       uniform vec3 horizon;
+      uniform vec3 sunDir;
+      uniform vec3 moonDir;
+      uniform float night;
       varying vec3 vDir;
       void main() {
         float h = clamp(vDir.y * 1.6, 0.0, 1.0);
-        gl_FragColor = vec4(mix(horizon, top, pow(h, 0.8)), 1.0);
+        vec3 c = mix(horizon, top, pow(h, 0.8));
+        // sun disc + warm glow by day
+        float sd = max(dot(vDir, sunDir), 0.0);
+        c += vec3(1.0, 0.95, 0.85) * (pow(sd, 1400.0) * 10.0 + pow(sd, 10.0) * 0.22) * (1.0 - night);
+        // moon disc + cool halo by night
+        float md = max(dot(vDir, moonDir), 0.0);
+        c += vec3(0.85, 0.9, 1.0) * (pow(md, 3000.0) * 2.2 + pow(md, 40.0) * 0.12) * night;
+        gl_FragColor = vec4(c, 1.0);
       }`,
   });
   scene.add(new THREE.Mesh(skyGeo, skyMat));
@@ -38,19 +52,22 @@ export function buildEnvironment(scene) {
   const sun = new THREE.DirectionalLight(0xfff3dd, 2.2);
   sun.position.set(35, 48, 20);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
-  sun.shadow.camera.left = -25;
-  sun.shadow.camera.right = 25;
-  sun.shadow.camera.top = 25;
-  sun.shadow.camera.bottom = -25;
-  sun.shadow.camera.far = 120;
-  sun.shadow.bias = -0.0004;
+  // wide enough to shadow the whole estate, not just the court
+  const hiRes = window.innerWidth >= 900;
+  sun.shadow.mapSize.set(hiRes ? 4096 : 2048, hiRes ? 4096 : 2048);
+  sun.shadow.camera.left = -60;
+  sun.shadow.camera.right = 60;
+  sun.shadow.camera.top = 60;
+  sun.shadow.camera.bottom = -60;
+  sun.shadow.camera.far = 160;
+  sun.shadow.bias = -0.0005;
+  sun.shadow.normalBias = 0.03;
   scene.add(sun);
 
-  // grass ground
+  // lawn with mowing stripes
   const ground = new THREE.Mesh(
     new THREE.CircleGeometry(220, 48),
-    new THREE.MeshStandardMaterial({ color: 0x6d8f5a, roughness: 1 })
+    new THREE.MeshStandardMaterial({ map: grassTexture([90, 90]), roughness: 1 })
   );
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -0.02;
@@ -131,6 +148,7 @@ export function buildEnvironment(scene) {
     sun.intensity = mixN('sun');
     hemi.intensity = mixN('hemi');
     scene.environmentIntensity = mixN('env');
+    skyMat.uniforms.night.value = n;
     starMat.opacity = n * 0.9;
     stars.visible = n > 0.02;
   }

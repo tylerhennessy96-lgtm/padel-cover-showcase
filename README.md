@@ -23,12 +23,15 @@ Then open http://localhost:5174
 - **Camera presets** (top right): overview, estate, side profile, end view,
   inside the court, roller mechanism close-up, guide rail detail — plus free
   orbit/zoom with the mouse at any time.
-- **Day / night toggle**: at night the court is lit by four LED floodlights on
-  the cover columns, stars come out, the mansion windows glow, and the pool
-  lights up.
-- **Estate surroundings**: the court sits in the grounds of a modern mansion —
-  pool with loungers and poolhouse, garage wing with three cars on the motor
-  court, driveway, hedgerows, topiary, and bollard lighting.
+- **Day / night toggle**: at night the court is lit by four LED floodlights
+  bracketed under the roof line (so it's lit open or closed), stars and a moon
+  come out, the house interiors light up, and the pool glows.
+- **Estate surroundings**: the court sits in the grounds of a glass-fronted
+  modern mansion you can see into — furnished living, dining and kitchen
+  spaces, a master bedroom above, pool with loungers and a poolhouse bar,
+  garage wing with three cars on the motor court, driveway, hedgerows,
+  topiary, and bollard lighting. Surfaces use procedural textures
+  (`src/textures.js`): striped lawn, paving, timber, rippling water.
 - **Close / open the cover** (bottom): animated motor travel (~7 s), or scrub
   the slider to any position. The roller spins and the stored fabric bulk
   shrinks as the membrane pays out.

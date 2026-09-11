@@ -285,7 +285,8 @@ export function buildCover(registerPart) {
   });
 
   // ---------------- court floodlights ----------------
-  // LED heads on the four mid columns, aimed down at the court for night play
+  // LED heads bracketed off the four mid columns UNDER the roof line, so the
+  // court is lit whether the cover is open or closed
   const floodHeadMat = new THREE.MeshStandardMaterial({
     color: 0x2a3138, roughness: 0.4, metalness: 0.6,
     emissive: 0xf3f7ff, emissiveIntensity: 0,
@@ -294,23 +295,32 @@ export function buildCover(registerPart) {
   for (const sx of [-1, 1]) {
     for (const sz of [-1, 1]) {
       const x = sx * 6.18;
-      const z = sz * FRAME_HALF_W;
-      const topY = roofY(z);
-      const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.55, 8), darkMat);
-      arm.position.set(x, topY + 0.27, z);
+      const zCol = sz * FRAME_HALF_W;
+      const y = roofY(zCol) - 0.75;                 // below rails, beams and fabric
+      // bracket arm from the column's inner face toward the court
+      const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.5, 8), darkMat);
+      arm.rotation.x = Math.PI / 2;
+      arm.position.set(x, y, zCol - sz * 0.4);
       group.add(arm);
-      const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.16, 0.3), floodHeadMat);
-      head.position.set(x, topY + 0.56, z - sz * 0.2);
-      head.rotation.x = sz * 0.55;
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.14, 0.32), floodHeadMat);
+      head.position.set(x, y - 0.06, zCol - sz * 0.7);
+      head.rotation.x = -sz * 0.75;                 // face down and across the court
       head.castShadow = true;
       group.add(head);
       registerPart(head, {
         name: 'LED floodlight',
-        blurb: 'One of four LED floodlight heads on the cover columns — 300+ lux for night padel with no separate lighting masts. They ride on the same app schedule as the cover.',
+        blurb: 'One of four LED floodlights bracketed under the roof line on the cover columns — 300+ lux for night padel, with no separate lighting masts. Because they sit beneath the canopy, the court is lit whether the cover is open or closed.',
       });
-      const spot = new THREE.SpotLight(0xe8f1ff, 0, 42, 0.8, 0.5, 1.6);
-      spot.position.set(x, topY + 0.5, z - sz * 0.25);
-      spot.target.position.set(x * 0.5, 0, sz * 1.2);
+      const spot = new THREE.SpotLight(0xe8f1ff, 0, 40, 0.85, 0.5, 1.6);
+      spot.position.set(x, y - 0.1, zCol - sz * 0.75);
+      spot.target.position.set(x * 0.45, 0, -sz * 1.4);
+      if (sz < 0) {                                   // two shadow-casting lights is plenty
+        spot.castShadow = true;
+        spot.shadow.mapSize.set(1024, 1024);
+        spot.shadow.camera.near = 1;
+        spot.shadow.camera.far = 30;
+        spot.shadow.bias = -0.0008;
+      }
       group.add(spot);
       group.add(spot.target);
       floodSpots.push(spot);
