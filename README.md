@@ -20,9 +20,15 @@ Then open http://localhost:5174
 
 ## What it does
 
-- **Camera presets** (top right): overview, side profile, end view, inside the
-  court, roller mechanism close-up, guide rail detail — plus free orbit/zoom
-  with the mouse at any time.
+- **Camera presets** (top right): overview, estate, side profile, end view,
+  inside the court, roller mechanism close-up, guide rail detail — plus free
+  orbit/zoom with the mouse at any time.
+- **Day / night toggle**: at night the court is lit by four LED floodlights on
+  the cover columns, stars come out, the mansion windows glow, and the pool
+  lights up.
+- **Estate surroundings**: the court sits in the grounds of a modern mansion —
+  pool with loungers and poolhouse, garage wing with three cars on the motor
+  court, driveway, hedgerows, topiary, and bollard lighting.
 - **Close / open the cover** (bottom): animated motor travel (~7 s), or scrub
   the slider to any position. The roller spins and the stored fabric bulk
   shrinks as the membrane pays out.
@@ -54,6 +60,7 @@ Then open http://localhost:5174
 - `src/cover.js` — the cover product (frame, roller, rails, fabric, motor) and
   its deploy animation; **this is the file to edit as the real product design
   firms up**
-- `src/scene.js` — sky, sun, ground, surroundings
+- `src/scene.js` — sky, sun, stars, ground, day/night/overcast blending
+- `src/estate.js` — the mansion grounds scenery (pool, garage, cars, hedges)
 - `src/dims.js` — the dimension overlay
 - `src/main.js` — camera presets, part picking, UI wiring

@@ -66,23 +66,24 @@ export function buildEnvironment(scene) {
   apron.receiveShadow = true;
   scene.add(apron);
 
-  // a few simple trees for scale
-  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x6b4f35, roughness: 1 });
-  const leafMat = new THREE.MeshStandardMaterial({ color: 0x4a7340, roughness: 1 });
-  const treeAt = (x, z, s = 1) => {
-    const t = new THREE.Group();
-    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18 * s, 0.26 * s, 2.4 * s, 8), trunkMat);
-    trunk.position.y = 1.2 * s;
-    trunk.castShadow = true;
-    const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(1.7 * s, 1), leafMat);
-    crown.position.y = 3.1 * s;
-    crown.castShadow = true;
-    t.add(trunk, crown);
-    t.position.set(x, 0, z);
-    scene.add(t);
-  };
-  treeAt(-22, 14, 1.4); treeAt(-26, -10, 1.1); treeAt(24, 16, 1.2);
-  treeAt(28, -8, 1.5); treeAt(-18, -16, 1.0); treeAt(20, -18, 1.3);
+  // stars, visible only at night
+  const starPos = new Float32Array(900 * 3);
+  for (let i = 0; i < 900; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const e = Math.acos(Math.random());          // upper hemisphere bias
+    const r = 205;
+    starPos[i * 3] = r * Math.sin(e) * Math.cos(a);
+    starPos[i * 3 + 1] = r * Math.cos(e) * 0.95 + 6;
+    starPos[i * 3 + 2] = r * Math.sin(e) * Math.sin(a);
+  }
+  const starGeo = new THREE.BufferGeometry();
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+  const starMat = new THREE.PointsMaterial({
+    color: 0xdfe8ff, size: 1.3, transparent: true, opacity: 0, depthWrite: false,
+  });
+  const stars = new THREE.Points(starGeo, starMat);
+  stars.visible = false;
+  scene.add(stars);
 
   // person silhouette for scale, near a corner
   const person = new THREE.Group();
@@ -96,31 +97,55 @@ export function buildEnvironment(scene) {
   person.position.set(-13.5, 0, 8);
   scene.add(person);
 
-  // ------------- clear-sky <-> overcast blend (for the rain demo) -------------
+  // ------------- sky states: clear day, overcast (rain), night -------------
   const CLEAR = {
     top: new THREE.Color(0x3f7fc4), horizon: new THREE.Color(0xc4dcec),
     bg: new THREE.Color(0x9ec9e8), fog: new THREE.Color(0xa9c9de),
-    sun: 2.2, hemi: 0.85,
+    sun: 2.2, hemi: 0.85, env: 0.55,
   };
   const OVERCAST = {
     top: new THREE.Color(0x5a6a78), horizon: new THREE.Color(0x9aa6ae),
     bg: new THREE.Color(0x8e9ba4), fog: new THREE.Color(0x8e9ba4),
-    sun: 0.55, hemi: 0.6,
+    sun: 0.55, hemi: 0.6, env: 0.35,
+  };
+  const NIGHT = {
+    top: new THREE.Color(0x0a1226), horizon: new THREE.Color(0x1b2b42),
+    bg: new THREE.Color(0x0d1726), fog: new THREE.Color(0x0d1624),
+    sun: 0.02, hemi: 0.14, env: 0.12,
   };
   let overcastTarget = 0;
   let overcast = 0;
+  let night = 0;       // driven externally (main lerps the toggle)
+
+  function apply() {
+    const o = overcast, n = night;
+    const mixC = (key, out) => {
+      out.lerpColors(CLEAR[key], OVERCAST[key], o).lerp(NIGHT[key], n);
+    };
+    mixC('top', skyMat.uniforms.top.value);
+    mixC('horizon', skyMat.uniforms.horizon.value);
+    mixC('bg', scene.background);
+    mixC('fog', scene.fog.color);
+    const mixN = (key) => THREE.MathUtils.lerp(
+      THREE.MathUtils.lerp(CLEAR[key], OVERCAST[key], o), NIGHT[key], n);
+    sun.intensity = mixN('sun');
+    hemi.intensity = mixN('hemi');
+    scene.environmentIntensity = mixN('env');
+    starMat.opacity = n * 0.9;
+    stars.visible = n > 0.02;
+  }
 
   return {
     setOvercast(t) { overcastTarget = t; },
+    setNight(n) {
+      if (Math.abs(n - night) < 0.001) return;
+      night = n;
+      apply();
+    },
     update(dt) {
       if (Math.abs(overcast - overcastTarget) < 0.002) return;
       overcast += (overcastTarget - overcast) * Math.min(1, dt * 1.6);
-      skyMat.uniforms.top.value.lerpColors(CLEAR.top, OVERCAST.top, overcast);
-      skyMat.uniforms.horizon.value.lerpColors(CLEAR.horizon, OVERCAST.horizon, overcast);
-      scene.background.lerpColors(CLEAR.bg, OVERCAST.bg, overcast);
-      scene.fog.color.lerpColors(CLEAR.fog, OVERCAST.fog, overcast);
-      sun.intensity = THREE.MathUtils.lerp(CLEAR.sun, OVERCAST.sun, overcast);
-      hemi.intensity = THREE.MathUtils.lerp(CLEAR.hemi, OVERCAST.hemi, overcast);
+      apply();
     },
   };
 }

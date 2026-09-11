@@ -284,6 +284,43 @@ export function buildCover(registerPart) {
     blurb: 'Weighted aluminium profile on the leading edge of the fabric. The motor drives it along the guide rails; its weight and end-glides keep the membrane taut behind it.',
   });
 
+  // ---------------- court floodlights ----------------
+  // LED heads on the four mid columns, aimed down at the court for night play
+  const floodHeadMat = new THREE.MeshStandardMaterial({
+    color: 0x2a3138, roughness: 0.4, metalness: 0.6,
+    emissive: 0xf3f7ff, emissiveIntensity: 0,
+  });
+  const floodSpots = [];
+  for (const sx of [-1, 1]) {
+    for (const sz of [-1, 1]) {
+      const x = sx * 6.18;
+      const z = sz * FRAME_HALF_W;
+      const topY = roofY(z);
+      const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.55, 8), darkMat);
+      arm.position.set(x, topY + 0.27, z);
+      group.add(arm);
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.16, 0.3), floodHeadMat);
+      head.position.set(x, topY + 0.56, z - sz * 0.2);
+      head.rotation.x = sz * 0.55;
+      head.castShadow = true;
+      group.add(head);
+      registerPart(head, {
+        name: 'LED floodlight',
+        blurb: 'One of four LED floodlight heads on the cover columns — 300+ lux for night padel with no separate lighting masts. They ride on the same app schedule as the cover.',
+      });
+      const spot = new THREE.SpotLight(0xe8f1ff, 0, 42, 0.8, 0.5, 1.6);
+      spot.position.set(x, topY + 0.5, z - sz * 0.25);
+      spot.target.position.set(x * 0.5, 0, sz * 1.2);
+      group.add(spot);
+      group.add(spot.target);
+      floodSpots.push(spot);
+    }
+  }
+  function setNightLights(n) {
+    floodHeadMat.emissiveIntensity = 2.6 * n;
+    for (const s of floodSpots) s.intensity = 320 * n;
+  }
+
   // ---------------- gutter + downpipe on the low side ----------------
   const lowEaveY = roofY(FRAME_HALF_W);
   const gutter = new THREE.Mesh(
@@ -395,5 +432,5 @@ export function buildCover(registerPart) {
     cups.rotation.y += dt * (0.6 + windKmh * 0.22);
   }
 
-  return { group, setDeploy, getDeploy: () => deployT, setRibStyle, setRoofColor, tickWeather };
+  return { group, setDeploy, getDeploy: () => deployT, setRibStyle, setRoofColor, tickWeather, setNightLights };
 }

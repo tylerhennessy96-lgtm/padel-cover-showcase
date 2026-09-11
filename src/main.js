@@ -7,6 +7,7 @@ import { buildCourt } from './court.js';
 import { buildCover } from './cover.js';
 import { buildDimensions } from './dims.js';
 import { buildRain } from './weather.js';
+import { buildEstate } from './estate.js';
 
 // ------------------------------------------------------------------ setup
 
@@ -57,6 +58,7 @@ function registerPart(mesh, info) {
 // ------------------------------------------------------------------ build world
 
 const env = buildEnvironment(scene);
+const estate = buildEstate(scene);
 const court = buildCourt(registerPart);
 scene.add(court.group);
 const cover = buildCover(registerPart);
@@ -69,6 +71,7 @@ const rain = buildRain(scene);
 
 const PRESETS = {
   overview: { pos: [28, 16, 24], tgt: [0, 3, 0] },
+  estate:   { pos: [-42, 27, 42], tgt: [0, 2, -14] },
   side:     { pos: [0, 4, 30], tgt: [0, 4, 0] },
   end:      { pos: [-32, 6, 0.01], tgt: [0, 4.5, 0] },
   inside:   { pos: [-8, 1.7, 0], tgt: [10, 4, 0] },
@@ -272,6 +275,17 @@ function updatePhone(dt) {
   phWind.textContent = `${Math.round(windKmh)} km/h`;
 }
 
+// ------------------------------------------------------------------ day / night
+
+let nightTarget = 0;
+let nightNow = 0;
+const nightBtn = document.querySelector('#night-btn');
+nightBtn.addEventListener('click', () => {
+  nightTarget = nightTarget > 0.5 ? 0 : 1;
+  nightBtn.classList.toggle('active', nightTarget > 0.5);
+  nightBtn.textContent = nightTarget > 0.5 ? '☀️ Day' : '🌙 Night';
+});
+
 // ------------------------------------------------------------------ dimensions toggle
 
 const dimsBtn = document.querySelector('#dims-btn');
@@ -388,6 +402,15 @@ function tick() {
     if (camTween.t >= 1) camTween = null;
   }
 
+  // day / night transition
+  if (Math.abs(nightNow - nightTarget) > 0.001) {
+    nightNow += (nightTarget - nightNow) * Math.min(1, dt * 2.2);
+    if (Math.abs(nightNow - nightTarget) < 0.002) nightNow = nightTarget;
+    env.setNight(nightNow);
+    estate.setNight(nightNow);
+    cover.setNightLights(nightNow);
+  }
+
   // weather
   env.update(dt);
   rain.update(dt);
@@ -423,6 +446,14 @@ tick();
 // handy in the console / for automated checks
 window.showcase = {
   camera, controls, flyTo, cover, dims,
+  setNight(v) {
+    nightTarget = nightNow = v;
+    env.setNight(v);
+    estate.setNight(v);
+    cover.setNightLights(v);
+    nightBtn.classList.toggle('active', v > 0.5);
+    nightBtn.textContent = v > 0.5 ? '☀️ Day' : '🌙 Night';
+  },
   jumpTo(name) {
     const { pos, tgt } = presetVectors(PRESETS[name]);
     camera.position.copy(pos);
