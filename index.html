@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Padel Court Cover — 3D Showcase</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div id="watermark">DEMO</div>
+
+  <div id="loader">
+    <div class="loader-inner">
+      <div class="loader-title">Padel Court Cover</div>
+      <div class="loader-sub">3D product showcase</div>
+      <div class="loader-bar"><div id="loader-fill"></div></div>
+      <div id="loader-note">Building the court…</div>
+    </div>
+  </div>
+
+  <div id="hud" class="hidden">
+    <!-- Top-left: title -->
+    <div class="panel" id="title-panel">
+      <div class="brand">PADEL COVER</div>
+      <div class="brand-sub">retractable court canopy</div>
+    </div>
+
+    <!-- Mobile: drawer toggles -->
+    <div id="mobile-bar">
+      <button id="mb-config">⚙ Configure</button>
+      <button id="mb-camera">🎥 Camera</button>
+    </div>
+
+    <!-- Left: configurator -->
+    <div class="panel" id="config-panel">
+      <div class="panel-label">Configure</div>
+
+      <div class="cfg-section">
+        <div class="cfg-title">Fabric tensioning</div>
+        <div class="seg" id="rib-seg">
+          <button data-rib="steel" class="active">Steel ribs</button>
+          <button data-rib="carbon">Carbon battens</button>
+        </div>
+      </div>
+
+      <div class="cfg-section">
+        <div class="cfg-title">Roof colour</div>
+        <div class="swatches" id="roof-swatches">
+          <button class="swatch active" data-color="#ffffff" style="background:#f2f4f6" title="White"></button>
+          <button class="swatch" data-color="#e6d7b8" style="background:#e6d7b8" title="Sand"></button>
+          <button class="swatch" data-color="#454b52" style="background:#454b52" title="Anthracite"></button>
+          <button class="swatch" data-color="#37695a" style="background:#37695a" title="Forest"></button>
+          <button class="swatch" data-color="#7d3644" style="background:#7d3644" title="Burgundy"></button>
+          <button class="swatch" data-color="#2c4d6e" style="background:#2c4d6e" title="Navy"></button>
+        </div>
+      </div>
+
+      <div class="cfg-section">
+        <div class="cfg-title">Court colour</div>
+        <div class="swatches" id="court-swatches">
+          <button class="swatch active" data-color="#1d6ea5" style="background:#1d6ea5" title="Tour blue"></button>
+          <button class="swatch" data-color="#2e7d4f" style="background:#2e7d4f" title="Green"></button>
+          <button class="swatch" data-color="#b04a30" style="background:#b04a30" title="Terracotta"></button>
+          <button class="swatch" data-color="#3c4248" style="background:#3c4248" title="Graphite"></button>
+        </div>
+      </div>
+
+      <div class="cfg-section">
+        <div class="cfg-title">Smart features</div>
+        <div class="btn-col">
+          <button id="rain-btn">🌧&nbsp; Rain sensor demo</button>
+          <button id="wind-btn">💨&nbsp; Wind gust demo</button>
+          <button id="app-btn">📱&nbsp; App control</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phone app mockup -->
+    <div id="phone" class="hidden">
+      <div class="phone-title">● PadelCover</div>
+      <div class="phone-status">
+        <div class="ph-row"><span>Cover</span><b id="ph-cover">Open</b></div>
+        <div class="ph-row"><span>Rain</span><b id="ph-rain">Dry</b></div>
+        <div class="ph-row"><span>Wind</span><b id="ph-wind">8 km/h</b></div>
+      </div>
+      <div class="phone-btns">
+        <button id="ph-open">Open</button>
+        <button id="ph-stop">Stop</button>
+        <button id="ph-close">Close</button>
+      </div>
+      <div class="phone-note">Wi-Fi connected · control from anywhere</div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div id="toasts"></div>
+
+    <!-- Top-right: camera presets -->
+    <div class="panel" id="cam-panel">
+      <div class="panel-label">Camera</div>
+      <div class="btn-col" id="cam-buttons">
+        <button data-cam="overview" class="active">Overview</button>
+        <button data-cam="side">Side profile</button>
+        <button data-cam="end">End view</button>
+        <button data-cam="inside">Inside court</button>
+        <button data-cam="roller">Roller mechanism</button>
+        <button data-cam="rail">Guide rail detail</button>
+      </div>
+    </div>
+
+    <!-- Bottom-center: cover controls -->
+    <div class="panel" id="control-panel">
+      <button id="deploy-btn" class="big">▶ Close cover</button>
+      <div class="slider-row">
+        <span class="slider-label">Open</span>
+        <input type="range" id="deploy-slider" min="0" max="1000" value="0" />
+        <span class="slider-label">Closed</span>
+      </div>
+      <button id="dims-btn">Show dimensions</button>
+    </div>
+
+    <!-- Bottom-left: part info -->
+    <div class="panel hidden" id="info-panel">
+      <button id="info-close">✕</button>
+      <div id="info-name">—</div>
+      <div id="info-blurb">—</div>
+    </div>
+
+    <!-- Hint -->
+    <div id="hint">drag to orbit · scroll to zoom · click a part to learn about it</div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
