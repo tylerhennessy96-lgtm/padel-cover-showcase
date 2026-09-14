@@ -42,23 +42,6 @@ html, body {
 
 .hidden { display: none !important; }
 
-/* ============================ WATERMARK ============================ */
-
-#watermark {
-  position: fixed;
-  z-index: 3;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-24deg);
-  font-size: clamp(90px, 22vw, 260px);
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  color: rgba(255, 255, 255, 0.10);
-  text-shadow: 0 0 2px rgba(0, 0, 0, 0.08);
-  pointer-events: none;
-  user-select: none;
-}
-
 /* ============================ LOADER ============================ */
 
 #loader {
@@ -359,36 +342,6 @@ input[type="range"] {
   pointer-events: none;
 }
 
-/* ============================ FOOTER ============================ */
-
-#footer {
-  position: fixed;
-  z-index: 9;
-  right: 16px;
-  bottom: 18px;
-  padding: 8px 14px;
-  border-radius: 10px;
-  background: var(--panel);
-  border: 1px solid rgba(79, 195, 247, 0.45);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background .15s ease, color .15s ease;
-}
-#footer:hover {
-  background: rgba(79, 195, 247, 0.18);
-  color: #bfe8ff;
-}
-
-/* keep the phone mockup clear of the footer chip */
-#phone { bottom: 64px; }
-
 /* ============================ MOBILE ============================ */
 
 #mobile-bar { display: none; }
@@ -439,7 +392,7 @@ input[type="range"] {
   #control-panel {
     left: 12px;
     right: 12px;
-    bottom: 46px;
+    bottom: 12px;
     transform: none;
     flex-wrap: wrap;
     justify-content: center;
@@ -454,17 +407,9 @@ input[type="range"] {
   #info-panel {
     left: 12px;
     right: 12px;
-    bottom: 172px;
+    bottom: 138px;
     max-width: none;
   }
-  #phone { bottom: 172px; right: 12px; width: 158px; }
+  #phone { bottom: 138px; right: 12px; width: 158px; }
   #hint { display: none; }
-  #footer {
-    right: auto;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 8px;
-    font-size: 10.5px;
-    padding: 6px 12px;
-  }
 }
